@@ -302,6 +302,7 @@ async def download_song(event):
                 progress_task = asyncio.create_task(progress_animation(processing_msg))
                 await asyncio.sleep(0.5)  # Small delay to ensure animation starts
 
+                download_success = False
                 try:
                     # Create downloads directory if it doesn't exist
                     if not os.path.exists('downloads'):
@@ -312,8 +313,15 @@ async def download_song(event):
                         None, 
                         lambda: ydl.download([f"https://www.youtube.com/watch?v={video['id']}"])
                     )
+                    download_success = True
                 finally:
                     progress_task.cancel()
+                
+                if not download_success:
+                    await processing_msg.edit(
+                        f"❌ 𝙀𝙧𝙧: 𝘾𝙤𝙪𝙡𝙡 𝙣𝙤𝙩 𝙙𝙤𝙬𝙣𝙡𝙤𝙖𝙙 𝙨𝙤𝙣𝙜.\n𝙋𝙡𝙚𝙖𝙨 𝙩𝙧𝙮 𝙖𝙜𝙖𝙞𝙣."
+                    )
+                    return
 
                 # Create safe filename from title
                 safe_title = sanitize_filename(video['title'])
@@ -363,7 +371,7 @@ async def download_song(event):
                 # Store both Sinhala and English/Romanized titles
                 await store_song(
                     video['title'],  # Original title (Sinhala)
-                    "mage wela",     # English/Romanized version - you'll need to map this
+                    query,           # Use the search query as the English/Romanized version
                     stored_msg.id
                 )
 
@@ -371,16 +379,19 @@ async def download_song(event):
                 os.remove(safe_filename)  # Remove using safe filename
 
         except Exception as e:
+            logger.error(f"Error in download_song: {str(e)}")
             # Make sure to cancel any running progress animation
             try:
-                progress_task.cancel()
+                if 'progress_task' in locals() and progress_task:
+                    progress_task.cancel()
             except:
                 pass
             await processing_msg.edit(
-                f"❌ 𝙀𝙧𝙧𝙨𝙧: 𝘾𝙤𝙪𝙡𝙙 𝙣𝙤𝙩 𝙙𝙤𝙬𝙣𝙡𝙤𝙖𝙙 𝙨𝙚𝙡𝙚 𝙨𝙜𝙚𝙡.\n𝙋𝙡𝙚𝙖𝙨 𝙩𝙧𝙮 𝙖𝙜𝙖𝙞𝙣."
+                f"❌ 𝙀𝙧𝙧: 𝘾𝙤𝙪𝙡𝙡 𝙣𝙤𝙩 𝙙𝙤𝙬𝙣𝙡𝙤𝙖𝙙 𝙨𝙤𝙣𝙜.\n𝙋𝙡𝙚𝙖𝙨 𝙩𝙧𝙮 𝙖𝙜𝙖𝙞𝙣."
             )
 
     except Exception as e:
+        logger.error(f"Outer error in download_song: {str(e)}")
         await event.reply('❌ An error occurred. Please try again.')
         print(f"Error: {str(e)}")
 
