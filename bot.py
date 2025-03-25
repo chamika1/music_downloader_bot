@@ -131,8 +131,6 @@ bot = TelegramClient('music_bot_new', API_ID, API_HASH).start(bot_token=BOT_TOKE
 
 # Here's how to update your code to use cookies:
 
-# ... existing code ...
-
 # Check if running on Heroku
 is_heroku = os.environ.get('DYNO') is not None
 
@@ -157,15 +155,32 @@ if is_heroku:
     # Get cookies from environment variable
     cookies_b64 = os.environ.get('YOUTUBE_COOKIES')
     if cookies_b64:
-        cookies_content = base64.b64decode(cookies_b64).decode('utf-8')
-        # Write cookies to a temporary file
-        with open('youtube_cookies.txt', 'w') as f:
-            f.write(cookies_content)
-        ydl_opts['cookiefile'] = 'youtube_cookies.txt'
+        logger.info("Found YOUTUBE_COOKIES environment variable, decoding...")
+        try:
+            cookies_content = base64.b64decode(cookies_b64).decode('utf-8')
+            # Write cookies to a temporary file
+            with open('youtube_cookies.txt', 'w') as f:
+                f.write(cookies_content)
+            logger.info("Successfully wrote cookies to file")
+            ydl_opts['cookiefile'] = 'youtube_cookies.txt'
+        except Exception as e:
+            logger.error(f"Error decoding cookies: {str(e)}")
+    else:
+        logger.warning("No YOUTUBE_COOKIES environment variable found")
+        
+        # Try to use the cookies file directly if it exists
+        if os.path.exists('youtube_cookies.txt'):
+            logger.info("Using existing youtube_cookies.txt file")
+            ydl_opts['cookiefile'] = 'youtube_cookies.txt'
+        else:
+            logger.warning("No cookies file found, YouTube downloads may fail")
 else:
     # Local development - use cookies file directly if it exists
     if os.path.exists('youtube_cookies.txt'):
+        logger.info("Using local youtube_cookies.txt file")
         ydl_opts['cookiefile'] = 'youtube_cookies.txt'
+    else:
+        logger.warning("No local cookies file found, YouTube downloads may fail")
 
 # Add this function to reset the database
 def reset_db():
