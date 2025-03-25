@@ -116,7 +116,8 @@ def format_views(count):
     return str(count)
 
 # Initialize the client
-bot = TelegramClient('music_bot', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
+# Initialize the client with a new session name
+bot = TelegramClient('music_bot_new', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
 
 # Adding YouTube Cookies to Your Bot for Heroku Deployment
 
