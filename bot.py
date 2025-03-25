@@ -119,6 +119,19 @@ def format_views(count):
 # Initialize the client with a new session name
 bot = TelegramClient('music_bot_new', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
 
+# Add this function to ensure the bot can access the storage channel
+async def ensure_storage_channel():
+    try:
+        logger.info(f"Trying to access storage channel: {STORAGE_CHANNEL_ID}")
+        # Try to get the channel entity
+        channel = await bot.get_entity(STORAGE_CHANNEL_ID)
+        logger.info(f"Successfully accessed storage channel: {channel.title}")
+        return True
+    except Exception as e:
+        logger.error(f"Error accessing storage channel: {str(e)}")
+        logger.info("Make sure the bot is an admin in the storage channel")
+        return False
+
 # Adding YouTube Cookies to Your Bot for Heroku Deployment
 
 # To solve the YouTube blocking issue on Heroku, you need to add cookies to your YouTube-DL requests. This will make your requests appear as if they're coming from a logged-in browser. Here's how to implement this:
@@ -443,7 +456,23 @@ async def upload_progress_callback(current, total, message):
         pass
 
 # Initialize database when bot starts
-reset_db()  # Comment this out after first run
-init_db()
-print("Bot is running...")
+@bot.on(events.NewMessage(pattern='/reset_db'))
+async def handle_reset_db(event):
+    # Only allow from specific users or in private chats
+    if event.is_private:
+        reset_db()
+        await event.reply("Database has been reset!")
+
+# Modified to check storage channel on startup
+async def start_bot():
+    # Check storage channel access
+    if not await ensure_storage_channel():
+        logger.error("Could not access storage channel. Please check the channel ID and make sure the bot is an admin.")
+    
+    # Initialize database
+    init_db()
+    logger.info("Bot is running...")
+
+# Start the bot
+bot.loop.run_until_complete(start_bot())
 bot.run_until_disconnected()
