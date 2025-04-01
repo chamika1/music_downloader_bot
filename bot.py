@@ -14,12 +14,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Replace these with your own values from https://my.telegram.org/apps
-API_ID = '27847998'
-API_HASH = '9650c8af044f1a3e7cf4659c64ca667a'
-BOT_TOKEN = '7700748885:AAEXtKxcPcX79Y1SAP7utKrRdnZpM1SQ_8I'
+API_ID = 'YOUR API_ID'
+API_HASH = 'YOUR API_HASH'
+BOT_TOKEN = 'YOUR BOT_TOKEN'
 
 # Add this constant at the top with other configs
-STORAGE_CHANNEL_ID = -1002413626339  # Replace with your channel ID
+STORAGE_CHANNEL_ID = "YOUR STORAGE_CHANNEL_ID"  # Replace with your channel ID
 
 # Add these constants for styling
 LOGO = """
